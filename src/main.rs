@@ -6,7 +6,7 @@ use message::*;
 use routing::*;
 use session::*;
 use socket2::SockRef;
-use std::{io, time::Duration};
+use std::{env, io, time::Duration};
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream, tcp::OwnedWriteHalf},
@@ -26,8 +26,10 @@ async fn main() -> io::Result<()> {
     let (cmd_tx, cmd_rx) = mpsc::unbounded_channel();
     tokio::spawn(SessionState::session_actor(cmd_rx));
 
-    let addr = "0.0.0.0:9000";
-    let listener = TcpListener::bind(addr).await?;
+    let port = env::args().nth(1).unwrap_or_else(|| "9000".to_string());
+    let addr = format!("0.0.0.0:{port}");
+
+    let listener = TcpListener::bind(&addr).await?;
     info!("listening on {addr}");
 
     loop {
